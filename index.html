@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>점검계획서 생성기</title>
+    <title>점검계획서 자동 생성기</title>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
@@ -57,7 +57,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>점검계획서 생성기</h1>
+    <h1>점검계획서 자동 생성기</h1>
     <div class="tabs">
         <div class="tab active" onclick="switchTab('builtin')">내장 템플릿 방식 <span class="badge rec">권장</span></div>
         <div class="tab" onclick="switchTab('template')">외부 템플릿 파일 방식 <span class="badge alt">직접선택</span></div>
@@ -104,7 +104,7 @@
 // ============================================================
 //  Holidays & Helpers
 // ============================================================
-const HOLIDAYS={2025:{"2025-01-01":"신정","2025-01-28":"설날 연휴","2025-01-29":"설날","2025-01-30":"설날 연휴","2025-03-01":"삼일절","2025-03-03":"대체공휴일(삼일절)","2025-05-05":"어린이날","2025-05-06":"대체공휴일(어린이날)","2025-06-06":"현충일","2025-08-15":"광복절","2025-10-03":"개천절","2025-10-05":"부처님오신날","2025-10-06":"대체공휴일(부처님오신날)","2025-10-07":"추석 연휴","2025-10-08":"추석","2025-10-09":"한글날/추석 연휴","2025-12-25":"크리스마스"},2026:{"2026-01-01":"신정","2026-02-16":"설날 연휴","2026-02-17":"설날","2026-02-18":"설날 연휴","2026-03-01":"삼일절","2026-03-02":"대체공휴일(삼일절)","2026-05-05":"어린이날","2026-05-24":"부처님오신날","2026-05-25":"대체공휴일(부처님오신날)","2026-06-03":"지방선거일(임시공휴일)","2026-06-06":"현충일","2026-07-17":"제헌절","2026-08-15":"광복절","2026-08-17":"대체공휴일(광복절)","2026-09-24":"추석 연휴","2026-09-25":"추석","2026-09-26":"추석 연휴","2026-10-03":"개천절","2026-10-05":"대체공휴일(개천절)","2026-10-09":"한글날","2026-12-25":"크리스마스"},2027:{"2027-01-01":"신정","2027-02-06":"설날 연휴","2027-02-07":"설날","2027-02-08":"설날 연휴","2027-02-09":"대체공휴일(설날)","2027-03-01":"삼일절","2027-05-05":"어린이날","2027-05-13":"부처님오신날","2027-06-06":"현충일","2027-08-15":"광복절","2027-08-16":"대체공휴일(광복절)","2027-09-14":"추석 연휴","2027-09-15":"추석","2027-09-16":"추석 연휴","2027-10-03":"개천절","2027-10-04":"대체공휴일(개천절)","2027-10-09":"한글날","2027-12-25":"크리스마스"}};
+const HOLIDAYS={2025:{"2025-01-01":"신정","2025-01-28":"설날 연휴","2025-01-29":"설날","2025-01-30":"설날 연휴","2025-03-01":"삼일절","2025-05-05":"어린이날/부처님오신날","2025-05-06":"대체공휴일(어린이날)","2025-06-06":"현충일","2025-08-15":"광복절","2025-10-03":"개천절","2025-10-05":"추석 연휴","2025-10-06":"추석","2025-10-07":"추석 연휴","2025-10-08":"대체공휴일(추석)","2025-10-09":"한글날","2025-12-25":"크리스마스"},2026:{"2026-01-01":"신정","2026-02-16":"설날 연휴","2026-02-17":"설날","2026-02-18":"설날 연휴","2026-03-01":"삼일절","2026-03-02":"대체공휴일(삼일절)","2026-05-05":"어린이날","2026-05-24":"부처님오신날","2026-05-25":"대체공휴일(부처님오신날)","2026-06-03":"지방선거일(임시공휴일)","2026-06-06":"현충일","2026-07-17":"제헌절","2026-08-15":"광복절","2026-08-17":"대체공휴일(광복절)","2026-09-24":"추석 연휴","2026-09-25":"추석","2026-09-26":"추석 연휴","2026-10-03":"개천절","2026-10-05":"대체공휴일(개천절)","2026-10-09":"한글날","2026-12-25":"크리스마스"},2027:{"2027-01-01":"신정","2027-02-06":"설날 연휴","2027-02-07":"설날","2027-02-08":"설날 연휴","2027-03-01":"삼일절","2027-05-05":"어린이날","2027-05-13":"부처님오신날","2027-06-06":"현충일","2027-08-15":"광복절","2027-08-16":"대체공휴일(광복절)","2027-09-14":"추석 연휴","2027-09-15":"추석","2027-09-16":"추석 연휴","2027-10-03":"개천절","2027-10-04":"대체공휴일(개천절)","2027-10-09":"한글날","2027-12-25":"크리스마스"}};
 function getDIM(y,m){return new Date(y,m,0).getDate()}
 function isHol(y,m,d){const s=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;return HOLIDAYS[y]&&HOLIDAYS[y][s]}
 function getWD(y,m,d){return new Date(y,m-1,d).getDay()}
@@ -133,52 +133,175 @@ const SSM='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 function parseXml(s){return new DOMParser().parseFromString(s,'application/xml')}
 function serXml(doc){return new XMLSerializer().serializeToString(doc)}
 function colLetter(c){let s='';c++;while(c>0){c--;s=String.fromCharCode(65+(c%26))+s;c=Math.floor(c/26)}return s}
+function colToNum(col){let n=0;for(let i=0;i<col.length;i++)n=n*26+(col.charCodeAt(i)-64);return n}
+
+// 행(row) 요소를 찾거나 없으면 sheetData에 순서대로 생성
+function getOrCreateRow(doc, rowNum){
+    const ns=SSM;
+    const sdArr=doc.getElementsByTagNameNS(ns,'sheetData');
+    if(!sdArr.length)return null;
+    const sd=sdArr[0];
+    const rows=sd.getElementsByTagNameNS(ns,'row');
+    const rowStr=String(rowNum);
+    for(let i=0;i<rows.length;i++){if(rows[i].getAttribute('r')===rowStr)return rows[i]}
+    // 행이 없으면 생성 (OOXML: 행도 순서대로 있어야 함)
+    const newRow=doc.createElementNS(ns,'row');
+    newRow.setAttribute('r',rowStr);
+    const allRows=Array.from(sd.getElementsByTagNameNS(ns,'row'));
+    let inserted=false;
+    for(let i=0;i<allRows.length;i++){
+        if(parseInt(allRows[i].getAttribute('r')||'0')>rowNum){sd.insertBefore(newRow,allRows[i]);inserted=true;break}
+    }
+    if(!inserted)sd.appendChild(newRow);
+    return newRow;
+}
+
+// 셀을 찾거나 없으면 행에 열 순서대로 생성
+function getOrCreateCell(doc, rowEl, cellRef){
+    const ns=SSM;
+    const col=cellRef.replace(/[0-9]/g,'');
+    const cells=rowEl.getElementsByTagNameNS(ns,'c');
+    for(let i=0;i<cells.length;i++){if(cells[i].getAttribute('r')===cellRef)return cells[i]}
+    const cell=doc.createElementNS(ns,'c');
+    cell.setAttribute('r',cellRef);
+    // OOXML: 셀은 열 순서(A→Z)대로 있어야 함 — append하면 A열이 뒤로 밀려 무시됨
+    const newColNum=colToNum(col);
+    const existing=Array.from(rowEl.getElementsByTagNameNS(ns,'c'));
+    let inserted=false;
+    for(let i=0;i<existing.length;i++){
+        const eCol=(existing[i].getAttribute('r')||'').replace(/[0-9]/g,'');
+        if(colToNum(eCol)>newColNum){rowEl.insertBefore(cell,existing[i]);inserted=true;break}
+    }
+    if(!inserted)rowEl.appendChild(cell);
+    return cell;
+}
 
 function setCellXml(doc,cellRef,value,type){
     const ns=SSM;
-    const col=cellRef.replace(/[0-9]/g,'');
-    const row=cellRef.replace(/[^0-9]/g,'');
-    const rows=doc.getElementsByTagNameNS(ns,'row');
-    let rowEl=null;
-    for(let i=0;i<rows.length;i++){if(rows[i].getAttribute('r')===row){rowEl=rows[i];break}}
+    const rowNum=parseInt(cellRef.replace(/[^0-9]/g,''));
+    const rowEl=getOrCreateRow(doc,rowNum);
     if(!rowEl)return;
-    const cells=rowEl.getElementsByTagNameNS(ns,'c');
-    let cell=null;
-    for(let i=0;i<cells.length;i++){if(cells[i].getAttribute('r')===cellRef){cell=cells[i];break}}
-    if(!cell){
-        cell=doc.createElementNS(ns,'c');
-        cell.setAttribute('r',cellRef);
-        rowEl.appendChild(cell);
-    }
-    // Preserve style attribute
+    const cell=getOrCreateCell(doc,rowEl,cellRef);
     const sAttr=cell.getAttribute('s');
-    // Clear existing value children
     while(cell.firstChild)cell.removeChild(cell.firstChild);
-    // Remove type attribute
     cell.removeAttribute('t');
-
     if(type==='f'){
-        // Formula
-        const fEl=doc.createElementNS(ns,'f');
-        fEl.textContent=value;
-        cell.appendChild(fEl);
+        const fEl=doc.createElementNS(ns,'f');fEl.textContent=value;cell.appendChild(fEl);
     } else if(type==='n'){
-        // Number
-        const vEl=doc.createElementNS(ns,'v');
-        vEl.textContent=value;
-        cell.appendChild(vEl);
+        const vEl=doc.createElementNS(ns,'v');vEl.textContent=value;cell.appendChild(vEl);
     } else if(type==='s' && value!==''){
-        // Inline string
         cell.setAttribute('t','inlineStr');
         const isEl=doc.createElementNS(ns,'is');
         const tEl=doc.createElementNS(ns,'t');
-        tEl.textContent=value;
-        isEl.appendChild(tEl);
-        cell.appendChild(isEl);
+        tEl.textContent=value;isEl.appendChild(tEl);cell.appendChild(isEl);
     }
-    // Restore style
     if(sAttr)cell.setAttribute('s',sAttr);
 }
+
+// ── 색상 스타일 맵 (generateFromBuffer에서 styles.xml 조작 후 초기화) ──────────
+// {black, blue, red, darkBlue} → styles.xml의 cellXfs 인덱스
+// 인라인 리치텍스트 방식 대신 styles.xml에 색상 XF를 직접 추가하는 방식 사용
+// → 폰트명·크기·정렬·테두리 등 셀 서식을 템플릿에서 100% 상속, 색상만 변경
+// → 숫자셀(일자)은 그대로 'n' 타입 → Excel 오류 삼각형 없음
+let _colorStyles=null;
+
+async function buildColorStyles(zip, sheetFile, refCellRef){
+    const ns=SSM;
+    try{
+        // 1. 참조 셀의 스타일 인덱스 읽기 (C6: 직원명 셀 — 데이터 셀 대표 서식)
+        const sheetXml=await zip.file('xl/'+sheetFile).async('string');
+        const sheetDoc=parseXml(sheetXml);
+        const refRow=refCellRef.replace(/[^0-9]/g,'');
+        let baseStyleIdx=0;
+        const rows=sheetDoc.getElementsByTagNameNS(ns,'row');
+        outer: for(let i=0;i<rows.length;i++){
+            if(rows[i].getAttribute('r')===refRow){
+                const cells=rows[i].getElementsByTagNameNS(ns,'c');
+                for(let j=0;j<cells.length;j++){
+                    if(cells[j].getAttribute('r')===refCellRef){
+                        const s=cells[j].getAttribute('s');
+                        if(s)baseStyleIdx=parseInt(s);
+                        break outer;
+                    }
+                }
+                break;
+            }
+        }
+        // 2. styles.xml 파싱
+        const stylesXml=await zip.file('xl/styles.xml').async('string');
+        const stylesDoc=parseXml(stylesXml);
+        const fontsEl=stylesDoc.getElementsByTagNameNS(ns,'fonts')[0];
+        const cellXfsEl=stylesDoc.getElementsByTagNameNS(ns,'cellXfs')[0];
+        const allXfs=cellXfsEl.getElementsByTagNameNS(ns,'xf');
+        const baseXf=allXfs[baseStyleIdx]||allXfs[0];
+        const baseFontId=parseInt(baseXf.getAttribute('fontId')||'0');
+        const allFonts=fontsEl.getElementsByTagNameNS(ns,'font');
+        const baseFont=allFonts[baseFontId]||allFonts[0];
+        // 3. 색상별 font + XF 생성
+        const colorDefs=[
+            ['black',   'FF000000'],
+            ['blue',    'FF2563EB'],
+            ['red',     'FFDC2626'],
+            ['darkBlue','FF1D4ED8']
+        ];
+        const map={};
+        for(const [name,hex] of colorDefs){
+            // 기본 font 복제 → color 교체
+            const newFont=baseFont.cloneNode(true);
+            Array.from(newFont.getElementsByTagNameNS(ns,'color'))
+                .forEach(el=>el.parentNode.removeChild(el));
+            const cEl=stylesDoc.createElementNS(ns,'color');
+            cEl.setAttribute('rgb',hex);
+            newFont.appendChild(cEl);
+            fontsEl.appendChild(newFont);
+            const newFontId=fontsEl.getElementsByTagNameNS(ns,'font').length-1;
+            fontsEl.setAttribute('count',String(newFontId+1));
+            // 기본 XF 복제 → fontId 교체
+            const newXf=baseXf.cloneNode(true);
+            newXf.setAttribute('fontId',String(newFontId));
+            newXf.setAttribute('applyFont','1');
+            cellXfsEl.appendChild(newXf);
+            const newStyleIdx=cellXfsEl.getElementsByTagNameNS(ns,'xf').length-1;
+            cellXfsEl.setAttribute('count',String(newStyleIdx+1));
+            map[name]=newStyleIdx;
+        }
+        zip.file('xl/styles.xml',serXml(stylesDoc));
+        return map;
+    }catch(e){console.error('buildColorStyles:',e);return null;}
+}
+
+// 스타일 인덱스를 직접 지정해서 셀 값 설정 (폰트는 XF에서 완전 상속)
+function setCellXmlStyled(doc,cellRef,value,type,styleIdx){
+    const ns=SSM;
+    const rowNum=parseInt(cellRef.replace(/[^0-9]/g,''));
+    const rowEl=getOrCreateRow(doc,rowNum);
+    if(!rowEl)return;
+    const cell=getOrCreateCell(doc,rowEl,cellRef);
+    while(cell.firstChild)cell.removeChild(cell.firstChild);
+    cell.removeAttribute('t');
+    // 스타일 적용 (null이면 기존 s 유지)
+    if(styleIdx!=null)cell.setAttribute('s',String(styleIdx));
+    if(type==='n'&&value!==''&&value!=null){
+        const vEl=doc.createElementNS(ns,'v');vEl.textContent=String(value);cell.appendChild(vEl);
+    }else if(type==='s'&&value!==''&&value!=null){
+        cell.setAttribute('t','inlineStr');
+        const isEl=doc.createElementNS(ns,'is');
+        const tEl=doc.createElementNS(ns,'t');
+        tEl.setAttribute('xml:space','preserve');tEl.textContent=String(value);
+        isEl.appendChild(tEl);cell.appendChild(isEl);
+    }
+}
+
+// 날짜 유형에 따른 색상 키 반환 (_colorStyles 키)
+function getDayColorKey(year,month,d){
+    const hol=isHol(year,month,d);
+    const wd=getWD(year,month,d);
+    if(hol||wd===0)return'red';   // 일요일/공휴일
+    if(wd===6)return'blue';        // 토요일
+    return'black';                  // 평일
+}
+// 색상 키 → styles.xml 스타일 인덱스 (없으면 null → 기존 s 유지)
+function cs(key){return _colorStyles?_colorStyles[key]:null;}
 
 // ============================================================
 //  Sheet fill functions (JSZip XML manipulation)
@@ -194,13 +317,14 @@ function fillDutySheet(doc, year, month, staff){
             const wd=getWD(year,month,d);
             const hol=isHol(year,month,d);
             const bd=isBD(year,month,d);
-            setCellXml(doc, aRef, d, 'n');
-            setCellXml(doc, bRef, getWDN(wd), 's');
+            const ck=getDayColorKey(year,month,d);
+            setCellXmlStyled(doc, aRef, d, 'n', cs(ck));       // 숫자 그대로 → 오류 삼각형 없음
+            setCellXmlStyled(doc, bRef, getWDN(wd), 's', cs(ck));
             for(let i=0;i<staff.length;i++){
                 const cRef=colLetter(2+i)+r;
                 setCellXml(doc, cRef, bd?staff[i]:'', bd?'s':'');
             }
-            setCellXml(doc, 'G'+r, hol||'', hol?'s':'');
+            setCellXmlStyled(doc, 'G'+r, hol||'', hol?'s':'', hol?cs('red'):null);
         } else {
             setCellXml(doc, aRef, '', '');
             setCellXml(doc, bRef, '', '');
@@ -248,14 +372,17 @@ function fillDutyTeamSheet(doc, year, month){
             const wd=getWD(year,month,d);
             const hol=isHol(year,month,d);
             const bd=isBD(year,month,d);
-            setCellXml(doc,'A'+r,d,'n');
-            setCellXml(doc,'B'+r,getWDN(wd),'s');
+            const ck=getDayColorKey(year,month,d);
+            setCellXmlStyled(doc,'A'+r,d,'n',cs(ck));           // 숫자 → 오류 삼각형 없음
+            setCellXmlStyled(doc,'B'+r,getWDN(wd),'s',cs(ck));
             const ta=tanA[d],ja=jangA[d];
             setCellXml(doc,'C'+r,(bd&&(ta||ja))?'손대현':'',(bd&&(ta||ja))?'s':'');
             setCellXml(doc,'D'+r,(bd&&(ta||ja))?'금동연':'',(bd&&(ta||ja))?'s':'');
             setCellXml(doc,'E'+r,ja||'',ja?'s':'');
-            setCellXml(doc,'F'+r,ta||'',ta?'s':'');
-            setCellXml(doc,'G'+r,hol||'',hol?'s':'');
+            // 차단막=진파랑, 단터널=검정 (setCellXmlStyled로 통일 — 폰트 일치)
+            if(ta==='차단계획 (차단막)')setCellXmlStyled(doc,'F'+r,ta,'s',cs('darkBlue'));
+            else setCellXml(doc,'F'+r,ta||'',ta?'s':'');
+            setCellXmlStyled(doc,'G'+r,hol||'',hol?'s':'',hol?cs('red'):null);
         } else {
             setCellXml(doc,'A'+r,'','');setCellXml(doc,'B'+r,'','');
             for(let c=2;c<=6;c++)setCellXml(doc,colLetter(c)+r,'','');
@@ -306,6 +433,141 @@ function fillANColumn(doc, month, maxRow){
 // ============================================================
 //  Shared generation function (JSZip direct XML modification)
 // ============================================================
+//  시트 Zoom 및 삭제 유틸리티
+// ============================================================
+
+// 단일 시트 XML에 zoom 적용 (문자열 조작 — serXml 사용 시 네임스페이스 깨짐 방지)
+async function setSheetZoom(zip, jszipPath, zoom){
+    try{
+        let xml=await zip.file(jszipPath).async('string');
+        const z=String(zoom);
+        if(/<sheetView\b/.test(xml)){
+            // 기존 <sheetView ...> 또는 <sheetView .../> 에 zoom 속성 추가/교체
+            xml=xml.replace(/<sheetView\b([^>]*?)(\/?>)/g,(match,attrs,closing)=>{
+                if(/\bzoomScale=/.test(attrs)){
+                    attrs=attrs.replace(/\bzoomScale="[^"]*"/,`zoomScale="${z}"`);
+                } else {
+                    attrs=` zoomScale="${z}"`+attrs;
+                }
+                if(/\bzoomScaleNormal=/.test(attrs)){
+                    attrs=attrs.replace(/\bzoomScaleNormal="[^"]*"/,`zoomScaleNormal="${z}"`);
+                } else {
+                    attrs=` zoomScaleNormal="${z}"`+attrs;
+                }
+                return `<sheetView${attrs}${closing}`;
+            });
+        } else {
+            // sheetView가 없으면 sheetData 바로 앞에 삽입
+            xml=xml.replace(/(<sheetData\b)/,
+                `<sheetViews><sheetView workbookViewId="0" zoomScale="${z}" zoomScaleNormal="${z}"/></sheetViews>$1`);
+        }
+        zip.file(jszipPath, xml);
+    }catch(e){console.error('setSheetZoom('+jszipPath+'):',e);}
+}
+
+// zip 내 모든 시트(xl/worksheets/sheet*.xml)에 zoom 적용
+async function setAllSheetsZoom(zip, zoom){
+    const paths=Object.keys(zip.files).filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k));
+    for(const p of paths) await setSheetZoom(zip,p,zoom);
+}
+
+// 지정 열(G 등)의 셀에 shrinkToFit(셀에 맞춤) 정렬 속성 적용
+// ※ styles.xml은 DOM+serXml, 시트 XML은 문자열 조작으로 처리
+async function applyGColumnAlignment(zip, sheetFile, rowStart, rowEnd){
+    try{
+        // 1. styles.xml 읽기 (DOM)
+        const stylesXml=await zip.file('xl/styles.xml').async('string');
+        const stylesDoc=parseXml(stylesXml);
+        const xfsEl=stylesDoc.getElementsByTagName('cellXfs')[0];
+        if(!xfsEl)return;
+        const xfEls=Array.from(xfsEl.getElementsByTagName('xf'));
+
+        // 2. 시트 XML 읽기 (문자열)
+        let sheetStr=await zip.file('xl/'+sheetFile).async('string');
+
+        // 3. G열 rowStart~rowEnd 범위 셀의 고유 스타일 인덱스 수집
+        const styleSet=new Set();
+        sheetStr.replace(/<c\b[^>]*>/g,tag=>{
+            const rM=tag.match(/\br="G(\d+)"/);
+            if(!rM)return tag;
+            const row=parseInt(rM[1]);
+            if(row<rowStart||row>rowEnd)return tag;
+            const sM=tag.match(/\bs="(\d+)"/);
+            styleSet.add(sM?sM[1]:'0');
+            return tag;
+        });
+        if(!styleSet.size)return;
+
+        // 4. 각 스타일에 대해 shrinkToFit 적용 XF 클론 생성
+        let baseCount=xfEls.length;
+        const styleMap={};
+        let added=0;
+        for(const idxStr of styleSet){
+            const idx=parseInt(idxStr);
+            const origXf=(idx<xfEls.length?xfEls[idx]:xfEls[0]).cloneNode(true);
+            origXf.setAttribute('applyAlignment','1');
+            // alignment 요소 찾기 또는 생성
+            let aEl=origXf.getElementsByTagNameNS(SSM,'alignment')[0]
+                   ||origXf.getElementsByTagName('alignment')[0];
+            if(!aEl){
+                aEl=stylesDoc.createElementNS(SSM,'alignment');
+                origXf.appendChild(aEl);
+            }
+            aEl.setAttribute('shrinkToFit','1');
+            // wrapText가 있으면 제거 (충돌 방지)
+            aEl.removeAttribute('wrapText');
+            xfsEl.appendChild(origXf);
+            styleMap[idxStr]=String(baseCount+added);
+            added++;
+        }
+
+        // 5. 시트 XML에서 G열 셀의 s 속성 교체 (문자열 조작)
+        sheetStr=sheetStr.replace(/<c\b[^>]*>/g,tag=>{
+            const rM=tag.match(/\br="G(\d+)"/);
+            if(!rM)return tag;
+            const row=parseInt(rM[1]);
+            if(row<rowStart||row>rowEnd)return tag;
+            const sM=tag.match(/\bs="(\d+)"/);
+            const oldS=sM?sM[1]:'0';
+            const newS=styleMap[oldS];
+            if(!newS)return tag;
+            return sM
+                ?tag.replace(/\bs="[^"]*"/,`s="${newS}"`)
+                :tag.replace(/^<c\b/,`<c s="${newS}"`);
+        });
+
+        // 6. 저장
+        zip.file('xl/'+sheetFile, sheetStr);
+        zip.file('xl/styles.xml', serXml(stylesDoc));
+    }catch(e){console.error('applyGColumnAlignment:',e);}
+}
+
+// workbook.xml의 <sheet> 태그에 state="hidden" 추가 → 시트 숨기기
+// ※ 파일 삭제 없이 속성 하나만 추가하므로 XML 구조 변경 없음 → 오류 없음
+async function hideSheetsInWorkbook(zip, sheetNamesToHide){
+    if(!sheetNamesToHide||sheetNamesToHide.length===0)return;
+    try{
+        let wbText=await zip.file('xl/workbook.xml').async('string');
+        for(const name of sheetNamesToHide){
+            // <sheet ... name="시트명" .../> 태그를 찾아 state="hidden" 추가
+            // 이미 state= 속성이 있으면 교체, 없으면 /> 바로 앞에 추가
+            wbText=wbText.replace(
+                new RegExp(`(<sheet\\b[^>]*\\bname="${name}"[^>]*?)(\\/>)`,'g'),
+                (match, attrs, closing)=>{
+                    if(/\bstate=/.test(attrs)){
+                        attrs=attrs.replace(/\bstate="[^"]*"/,'state="hidden"');
+                    } else {
+                        attrs=attrs+' state="hidden"';
+                    }
+                    return attrs+closing;
+                }
+            );
+        }
+        zip.file('xl/workbook.xml', wbText);
+    }catch(e){console.error('hideSheetsInWorkbook:',e);}
+}
+
+// ============================================================
 async function generateFromBuffer(buf, year, month){
     const zip=await JSZip.loadAsync(buf);
 
@@ -319,6 +581,9 @@ async function generateFromBuffer(buf, year, month){
         'worksheets/sheet4.xml','worksheets/sheet5.xml','worksheets/sheet6.xml',
         'worksheets/sheet7.xml','worksheets/sheet8.xml','worksheets/sheet9.xml',
         'worksheets/sheet10.xml','worksheets/sheet11.xml'];
+
+    // 3. styles.xml에 색상 스타일 XF 생성 (sheetFiles 선언 후 실행 — 순서 중요)
+    _colorStyles=await buildColorStyles(zip, sheetFiles[2], 'C6');
 
     // 3. 표지 (sheet1) - A5: month월 점검계획서
     let s1=parseXml(await zip.file('xl/'+sheetFiles[0]).async('string'));
@@ -346,6 +611,22 @@ async function generateFromBuffer(buf, year, month){
     fillPeriodicDateRow(s7, year, month, 47);
     fillANColumn(s7, month, 46);
     zip.file('xl/'+sheetFiles[6], serXml(s7));
+
+    // 8. 비고(G열) 셀에 맞춤(shrinkToFit) 적용 — 근무표_안전관리자, 근무표_점검팀
+    await applyGColumnAlignment(zip, sheetFiles[2], 5, 37); // 근무표_안전관리자
+    await applyGColumnAlignment(zip, sheetFiles[3], 5, 37); // 근무표_점검팀
+
+    // 10. 모든 시트 zoom 80% 적용
+    await setAllSheetsZoom(zip, 80);
+
+    // 11. 분기 여부에 따라 시트 조건부 숨기기
+    // 3·6·9·12월(분기): 분기 시트 표시 → 점검팀 시트 숨김
+    // 그 외: 점검팀 시트 표시 → 분기 시트 숨김
+    const isQuarterMonth=[3,6,9,12].includes(month);
+    const sheetsToHide=isQuarterMonth
+        ?['정기점검1_점검팀','정기점검2_점검팀']
+        :['정기점검1_점검팀_분기','정기점검2_점검팀_분기'];
+    await hideSheetsInWorkbook(zip, sheetsToHide);
 
     // Generate and download
     const blob=await zip.generateAsync({type:'blob',compression:'DEFLATE'});
